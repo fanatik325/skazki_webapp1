@@ -4,6 +4,17 @@ from pydantic import BaseModel
 import uuid
 import os
 import httpx
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+
+# Подключаем папку со статикой
+app.mount("/static", StaticFiles(directory="."), name="static")
+
+# Отдаём index.html
+@app.get("/", response_class=HTMLResponse)
+async def serve_webapp():
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 app = FastAPI()
 
@@ -49,3 +60,4 @@ async def create_payment(data: PaymentRequest):
         "id": resp_json["id"],
         "confirmation_token": resp_json["confirmation"]["confirmation_token"]
     }
+
