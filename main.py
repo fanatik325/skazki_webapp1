@@ -7,6 +7,16 @@ import httpx
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+app = FastAPI()
+
+# Разрешаем CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Подключаем папку со статикой
 app.mount("/static", StaticFiles(directory="."), name="static")
 
@@ -16,15 +26,7 @@ async def serve_webapp():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+# Получаем ключи из переменных окружения Render
 SHOP_ID = os.getenv("SHOP_ID")
 SHOP_TOKEN = os.getenv("SHOP_TOKEN")
 
@@ -43,11 +45,12 @@ async def create_payment(data: PaymentRequest):
         "amount": {"value": "299.00", "currency": "RUB"},
         "confirmation": {
             "type": "embedded",
-            "return_url": "https://t.me/your_bot?start=paid"
+            "return_url": "https://t.me/your_bot?start=paid"  # ← при оплате возвращает в бота
         },
         "capture": True,
         "description": f"Сказака — подписка для {data.telegram_id}"
     }
+
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "https://api.yookassa.ru/v3/payments",
@@ -60,4 +63,3 @@ async def create_payment(data: PaymentRequest):
         "id": resp_json["id"],
         "confirmation_token": resp_json["confirmation"]["confirmation_token"]
     }
-
