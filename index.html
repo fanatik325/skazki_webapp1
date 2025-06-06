@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Сказака — Подписка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://yookassa.ru/checkout-widget/v1/checkout-widget.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; text-align: center; }
+    button { padding: 10px 20px; font-size: 18px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Сказака</h1>
+  <p>Подпишитесь, чтобы получить доступ ко всем сказкам!</p>
+  <button onclick="pay()">Оплатить 299₽</button>
+  <script>
+    async function pay() {
+      const tg = window.Telegram.WebApp;
+      tg.MainButton.hide();
+      const response = await fetch("https://skazki-webapp1.onrender.com/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegram_id: tg.initDataUnsafe.user.id })
+      });
+      const data = await response.json();
+      const checkout = new window.YooMoneyCheckoutWidget({
+        confirmation_token: data.confirmation_token,
+        return_url: "https://t.me/skazkipers_bot?start=paid"
+      });
+      checkout.render("body");
+    }
+  </script>
+</body>
+</html>
